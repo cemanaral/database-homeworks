@@ -1,0 +1,38 @@
+--Query a
+Select s.fName, s.lName, s.birthDate, s.city
+From STUDENT s
+
+--Query b
+Select std.fName, std.lName, d.dName, stf.fName 'AdvisorFname', stf.lName 'AdvisorLname'
+From STUDENT std inner join DEPARTMENT d on std.deptCode=d.deptCode
+  inner join ADVISOR a on std.advisorID=a.staffID
+  inner join STAFF stf on stf.staffID=a.staffID
+Order By d.dName, std.lName
+
+--Query c
+Select Distinct s.fName, s.lName
+From STUDENT s inner join DEPARTMENT d on s.deptCode=d.deptCode
+Where d.dName='Computer Engineering'
+
+--Query d
+Select *
+From STUDENT s
+Where s.fName like '%at%'
+
+--Query e
+-- Note: I have DATEDIFF(YYYY, birthDate, GETDATE()) 
+-- formula as age column in STAFF
+
+Select s.staffID, s.fName, s.lName
+From MANAGER m inner join STAFF s on m.staffID=s.staffID
+Where s.age > 40 
+  and s.isMarried=1
+  and noOfChildren >= 2
+Order By s.birthDate
+
+--Query f
+
+Select std.studentID, std.fName, std.lName, dep.dName, dip.dateOfGraduation
+From STUDENT std inner join DEPARTMENT dep on std.deptCode=dep.deptCode
+  inner join DIPLOMA dip on dip.studentID=std.studentID
+Where dip.dateOfGraduation > '2010.05.21 00:00:00'
