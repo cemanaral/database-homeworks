@@ -1,0 +1,52 @@
+-- 2) Update the field Age for all players
+Update Player
+Set Age=(DATEDIFF(YEAR,  Birthdate, GETDATE()))
+
+
+-- 3) List the “younger” players whose first name does not contain “nec” 
+-- and play in “Beşiktaş”. “Younger” players are the ones whose ages are 
+-- less than the average age of all players. Retrieve PlayerID, FirstName + 
+-- ” “ + LastName
+Select p.PlayerID, p.FirstName + ' ' + p.LastName as FullName
+From Player p inner join PlayerTeam pt on p.PlayerID=pt.PlayerID
+  inner join Team t on pt.TeamID=t.TeamID
+Where p.FirstName Not Like '%nec%' 
+  And t.Name='Beşiktaş'
+  And p.Age < (Select Avg(p2.age) From Player p2)
+
+
+
+-- 4) Update all City values of the table Team as: “City” + “ #p”
+-- + “Number of players” +” #g” + “Number of goals forward” (e.g. 
+-- “İstanbul #p25 #g74”). Do not forget to consider own goals in 
+-- your calculations.
+Update Team
+Set City=City + ' #p' + CONVERT(varchar(3), PCount.NoOfPlayers) + ' #g' + CONVERT(varchar(3), tg.Goals)
+From Team t inner join 
+	(Select pt2.TeamID, count(*) as NoOfPlayers
+	From PlayerTeam pt2
+	Group by pt2.TeamID) PCount on t.TeamID=PCount.TeamID
+	inner join 
+(Select g.TeamID, sum(g.goals) Goals
+From
+(-- goals as home team
+Select m3.HomeTeamID as TeamID, count(*) goals
+From Match m3 inner join Goals g3
+  on m3.MatchID=g3.MatchID
+Where g3.IsOwnGoal=1
+Group By m3.HomeTeamID
+
+Union All
+
+-- goals as visiting team
+Select m4.VisitingTeamID as TeamID, count(*) goals
+From Match m4 inner join Goals g4
+  on m4.MatchID=g4.MatchID
+Where g4.IsOwnGoal=0
+Group By m4.VisitingTeamID) g
+
+Group By g.TeamID) tg
+
+on tg.TeamID=t.TeamID
+
+
