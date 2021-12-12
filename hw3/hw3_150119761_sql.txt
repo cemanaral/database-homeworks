@@ -50,3 +50,43 @@ Group By g.TeamID) tg
 on tg.TeamID=t.TeamID
 
 
+
+-- 5) List the top 10 top scorers. Retrieve playerID, first name, last name, 
+-- number of goals scored, number of matches that player did not score a goal, 
+-- average number of goals per scored matches.
+
+
+Select NoOfGoals.PlayerID, p.FirstName, p.LastName, NoOfGoals.NoOfTotalGoals, 
+  NoOfMatchesDidNotScore.NoOfMatchesDidNotScore, 
+  AverageNoOfGoalsPerScoredMatch.AverageNoOfGoalsPerScoredMatch
+From
+
+-- no of goals scored for each player
+(Select Top 10 g2.PlayerID, Count(*) NoOfTotalGoals
+From Goals g2
+Group By g2.PlayerID
+Order By NoOfTotalGoals desc) NoOfGoals
+
+inner join
+
+-- no of matches player did not score a goal
+(Select pt3.PlayerID, Count(pt3.PlayerID) NoOfMatchesDidNotScore
+From PlayerTeam pt3 inner join Match m3 on pt3.TeamID=m3.HomeTeamID or pt3.TeamID=m3.VisitingTeamID
+Where pt3.PlayerID not in (Select g3.PlayerID from Goals g3 Where g3.MatchID=m3.MatchID)
+Group By pt3.PlayerID) NoOfMatchesDidNotScore
+
+on NoOfGoals.PlayerID=NoOfMatchesDidNotScore.PlayerID
+inner join
+
+-- average number of goals per scored match
+(Select NoOfGoals.PlayerID, AVG(NoOfGoals.NoOfGoals) AverageNoOfGoalsPerScoredMatch
+From
+(Select g4.PlayerID, g4.MatchID, count(*)*1.0 NoOfGoals
+From Goals g4
+Group By g4.PlayerID, g4.MatchID) NoOfGoals
+Group By PlayerID) AverageNoOfGoalsPerScoredMatch
+
+on NoOfGoals.PlayerID=AverageNoOfGoalsPerScoredMatch.PlayerID
+inner join Player p on NoOfGoals.PlayerID=p.PlayerID
+
+Order By NoOfGoals.NoOfTotalGoals Desc
