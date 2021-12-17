@@ -3,6 +3,18 @@ Update Player
 Set Age=(DATEDIFF(YEAR,  Birthdate, GETDATE()))
 
 
+
+
+
+
+
+
+
+
+
+
+	
+
 -- 3) List the “younger” players whose first name does not contain “nec” 
 -- and play in “Beşiktaş”. “Younger” players are the ones whose ages are 
 -- less than the average age of all players. Retrieve PlayerID, FirstName + 
@@ -13,6 +25,21 @@ From Player p inner join PlayerTeam pt on p.PlayerID=pt.PlayerID
 Where p.FirstName Not Like '%nec%' 
   And t.Name='Beşiktaş'
   And p.Age < (Select Avg(p2.age) From Player p2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -48,6 +75,20 @@ Group By m4.VisitingTeamID) g
 Group By g.TeamID) tg
 
 on tg.TeamID=t.TeamID
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -90,3 +131,53 @@ on NoOfGoals.PlayerID=AverageNoOfGoalsPerScoredMatch.PlayerID
 inner join Player p on NoOfGoals.PlayerID=p.PlayerID
 
 Order By NoOfGoals.NoOfTotalGoals Desc
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--6) Implement a stored procedure sp_GetStandingsUpToDate (aDate) 
+
+ALTER PROCEDURE sp_GetStandingsUpToDate @aDate smalldatetime
+AS
+	Begin Tran
+	/* if date is  invalid */
+	/* throw expection */
+	If not (@aDate > '2013-08-16 00:00:00' and @aDate < '2014-07-31 00:00:00')
+	Begin
+		Rollback Transaction;
+		Throw 50000, 'Invalid date. Date must be between 2013-08-16 2014-07-31', 1
+	End
+
+
+	Select
+	  t.Name 'Team Name',
+	  Count(*) 'GP'
+	From Team t inner join Match m
+	  on t.TeamID=m.HomeTeamID or t.TeamID=m.VisitingTeamID
+	Where m.DateOfMatch < @aDate
+	Group By t.Name
+
+	Commit Tran
+
+
+GO
+
+exec sp_GetStandingsUpToDate '2013-10-17 00:00:00'
